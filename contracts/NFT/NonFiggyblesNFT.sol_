@@ -2,12 +2,11 @@
 
 pragma solidity ^0.6.0;
 
-import "../AccessControl/NonFiggyblesAccessControls.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
 /**
- * @title NonFiggybles  NFT
+ * @title NonFiggybles NFT a.k.a. parent NFTs
  * @dev Issues ERC-721 tokens 
  */
 contract NonFiggyblesNFT is ERC721("Non Figgybles NFT", "NFN") {
@@ -27,9 +26,6 @@ contract NonFiggyblesNFT is ERC721("Non Figgybles NFT", "NFN") {
         uint256 _salePrice
     );
 
-    /// @dev Required to govern who can call certain functions
-    NonFiggyblesAccessControls public accessControls;
-
     /// @dev current max tokenId
     uint256 public tokenIdPointer;
 
@@ -41,26 +37,20 @@ contract NonFiggyblesNFT is ERC721("Non Figgybles NFT", "NFN") {
 
     /**
      @notice Constructor
-     @param _accessControls Address of the NonFiggyblesNFT access control contract
      */
-    constructor(NonFiggyblesAccessControls _accessControls) public {
-        accessControls = _accessControls;
+    constructor() public {
         emit NonFiggyblesNFTContractDeployed();
     }
 
     /**
      @notice Mints a NonFiggyblesNFT AND when minting to a contract checks if the beneficiary is a 721 compatible
-     @dev Only senders with either the admin or mintor role can invoke this method
+     @dev Only senders with either the minter or smart contract role can invoke this method
      @param _beneficiary Recipient of the NFT
      @param _tokenUri URI for the token being minted
      @param _postCreator Instagram Post Creator - will be required for issuing royalties from secondary sales
      @return uint256 The token ID of the token that was minted
      */
     function mint(address _beneficiary, string calldata _tokenUri, address _postCreator) external returns (uint256) {
-        require(
-            accessControls.hasAdminRole(_msgSender()) || accessControls.hasMinterRole(_msgSender()),
-            "NonFiggyblesNFT.mint: Sender must have the admin or minter role"
-        );
         // Valid args
         _assertMintingParamsValid(_tokenUri, _postCreator);
 
@@ -107,10 +97,6 @@ contract NonFiggyblesNFT is ERC721("Non Figgybles NFT", "NFN") {
      @param _tokenUri The new URI
      */
     function setTokenURI(uint256 _tokenId, string calldata _tokenUri) external {
-        require(
-            accessControls.hasAdminRole(_msgSender()) || accessControls.hasSmartContractRole(_msgSender()),
-            "NonFiggyblesNFT.mint: Sender must have the admin or contract role"
-        );
         _setTokenURI(_tokenId, _tokenUri);
         emit NonFiggyblesTokenUriUpdate(_tokenId, _tokenUri);
     }
@@ -122,10 +108,6 @@ contract NonFiggyblesNFT is ERC721("Non Figgybles NFT", "NFN") {
      @param _salePrice The primary Ether sale price in WEI
      */
     function setPrimarySalePrice(uint256 _tokenId, uint256 _salePrice) external {
-        require(
-            accessControls.hasAdminRole(_msgSender()) || accessControls.hasSmartContractRole(_msgSender()),
-            "NonFiggyblesNFT.mint: Sender must have the admin or contract role"
-        );
         require(_exists(_tokenId), "NonFiggyblesNFT.setPrimarySalePrice: Token does not exist");
         require(_salePrice > 0, "NonFiggyblesNFT.setPrimarySalePrice: Invalid sale price");
 
@@ -136,15 +118,6 @@ contract NonFiggyblesNFT is ERC721("Non Figgybles NFT", "NFN") {
         }
     }
 
-    /**
-     @notice Method for updating the access controls contract used by the NFT
-     @dev Only admin
-     @param _accessControls Address of the new access controls contract
-     */
-    function updateAccessControls(NonFiggyblesAccessControls _accessControls) external {
-        require(accessControls.hasAdminRole(_msgSender()), "NonFiggyblesNFT.updateAccessControls: Sender must be admin");
-        accessControls = _accessControls;
-    }
     /////////////////
     // View Methods /
     /////////////////

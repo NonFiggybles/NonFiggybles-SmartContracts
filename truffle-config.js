@@ -47,15 +47,12 @@ module.exports = {
     //   timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
     //   skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
     // },
-    rinkeby: {
-      provider() {
-        return new HDWalletProvider(process.env.PRIVATEKEY, rinkebyUrl, 0);
-      },
-      networkCheckTimeout:100000,
-      network_id: 4,
-      gasPrice: 2000000000,
-      gas: 4712388,
-    },
+    testnet: {
+      host: 'https://wallet-main.confluxrpc.org',
+      port: 12537,
+      network_id: "1",
+      privateKeys: [process.env.PRIVATEKEY]
+    }
     // Useful for private networks
     // private: {
     // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
